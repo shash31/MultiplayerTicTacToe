@@ -16,43 +16,45 @@ for (let i = 0; i < 3; i++) {
 
 table.addEventListener('click', click)
 
-function sendGridToBackend() {
-    console.log(JSON.stringify(grid))
-    fetch('https://tictactoe.shash.digital/backend/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(grid) 
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+// const socket = new WebSocket('ws://localhost:8080')
+const socket = new WebSocket('http://tictactoe.shash.digital/backend')
+
+socket.onopen = () => console.log('Connected to server!');
+socket.onmessage = (event) => {
+    console.log('Server says:', event.data);
+    const res = JSON.parse(event.data)
+    console.log(res)
+    grid = res.grid
+    const rows = table.rows
+    for (let i = 0; i < 3; i++) {
+        const cells = rows[i].cells
+        for (let j = 0; j < 3; j++) {
+            cells[j].innerText = grid[i][j]
         }
-        return response.json();
-    })
-    .then(data => {
-        console.log('Success:', data); 
-    })
-    .catch((error) => {
-        console.error('Error:', error);
-    });
+    }
+    if (res.win !== false) {
+        endGame(res.win)
+    }
 }
 
-function click(e) {
+function endGame(win) {
+    table.removeEventListener('click', click)
+    if (win != '') {
+        winner.innerText = `${win} won!!`
+    } else {
+        winner.innerText = `Tie!!`
+    }
+    table.appendChild(winner)
+    showBtn()
+}
+
+async function click(e) {
     if (e.target != table) {
         if (e.target.innerText == '') {
             e.target.innerText = turn
             grid[e.target.dataset.x][e.target.dataset.y] = turn
             console.log('sending grid to backend')
-            sendGridToBackend()
-            const win = checkWin()
-            if (win != '') {
-                table.removeEventListener('click', click)
-                winner.innerText = `${win} won!!`
-                table.appendChild(winner)
-                showBtn()
-            }
+            socket.send(JSON.stringify(grid));
             turn = turn == 'X' ? 'O' : 'X'
         }
     }
@@ -81,26 +83,5 @@ function reset() {
     }
     table.removeChild(winner)
     hideBtn()
-}
-
-
-function checkWin() {
-    for (let i = 0; i < 3; i++) {
-        if (grid[i][0] != '') {
-            if (grid[i].every(val => val == grid[i][0])) return grid[i][0]
-        }
-        if (grid[0][i] != '') {
-            if (grid[0][i] == grid[1][i] && grid[1][i] == grid[2][i]) return grid[0][i]
-        }
-    }
-
-    if (grid[0][0] != '') {
-        if (grid[0][0] == grid[1][1] && grid[1][1] == grid[2][2]) return grid[0][0]
-    }
-    
-    if (grid[0][2] != '') {
-        if (grid[0][2] == grid[1][1] && grid[1][1] == grid[2][0]) return grid[0][2]
-    }
-
-    return '';
+    table.addEventListener('click', click)
 }
