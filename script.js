@@ -18,7 +18,7 @@ table.addEventListener('click', click)
 
 function sendGridToBackend() {
     console.log(JSON.stringify(grid))
-    fetch('http://localhost:3000/', {
+    fetch('https://test.shash.digital/backend/', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
