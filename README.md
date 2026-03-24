@@ -1,6 +1,6 @@
 # Multiplayer Tic Tac Toe
 
-Play Tic Tac Toe with your friends at ![tictactoe.shash.digital](https://tictactoe.shash.digital)!
+Play Tic Tac Toe with your friends at [tictactoe.shash.digital](https://tictactoe.shash.digital)!
 
 Backend made with Node.js server reverse proxied behind an Apache Server
 
@@ -13,4 +13,4 @@ Backend made with Node.js server reverse proxied behind an Apache Server
 
 Work in progress
 
-![Live Site](https://tictactoe.shash.digital)
+[Live Site](https://tictactoe.shash.digital)
