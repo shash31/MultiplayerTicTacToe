@@ -16,11 +16,36 @@ for (let i = 0; i < 3; i++) {
 
 table.addEventListener('click', click)
 
+function sendGridToBackend() {
+    console.log(JSON.stringify(grid))
+    fetch('http://localhost:3000/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(grid) 
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Success:', data); 
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+    });
+}
+
 function click(e) {
     if (e.target != table) {
         if (e.target.innerText == '') {
             e.target.innerText = turn
             grid[e.target.dataset.x][e.target.dataset.y] = turn
+            console.log('sending grid to backend')
+            sendGridToBackend()
             const win = checkWin()
             if (win != '') {
                 table.removeEventListener('click', click)
