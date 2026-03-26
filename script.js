@@ -22,8 +22,8 @@ function makeTable() {
     table.caption = caption
 }
 
-const socket = new WebSocket('ws://localhost:8080')
-// const socket = new WebSocket('https://tictactoe.shash.digital/backend')
+const backend = window.location.hostname === 'localhost' ? 'http://localhost:8080' : '/backend';
+const socket = new WebSocket(backend)
 
 socket.onopen = () => {
     console.log('Connected to server!')
