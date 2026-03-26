@@ -37,7 +37,14 @@ td {
 
 caption {
     font-size: 1em;
+}
+
+.win {
     color: green;
+}
+
+.lose {
+    color: red;
 }
 
 .hidden {

@@ -1,38 +1,56 @@
 const table = document.querySelector('table')
 const resetBtn = document.getElementById('reset')
-const winner = document.createElement('caption')
-let grid = [['', '', ''], ['', '', ''], ['', '', '']]
-let turn = 'X'
+const caption = document.createElement('caption')
+let grid = []
+let turn;
 
-for (let i = 0; i < 3; i++) {
-    const row = document.createElement('tr')
-    for (let j = 0; j < 3; j++) {
-        const cell = document.createElement('td')
-        cell.dataset.x = i; cell.dataset.y = j
-        row.appendChild(cell)
+table.innerText = 'Waiting for connection...'
+
+function makeTable() {
+    table.innerText = ''
+    for (let i = 0; i < 3; i++) {
+        grid.push([])
+        const row = document.createElement('tr')
+        for (let j = 0; j < 3; j++) {
+            const cell = document.createElement('td')
+            cell.dataset.x = i; cell.dataset.y = j
+            row.appendChild(cell)
+            grid[i].push(cell)
+        }
+        table.appendChild(row)
     }
-    table.appendChild(row)
+    table.caption = caption
 }
 
-table.addEventListener('click', click)
+const socket = new WebSocket('ws://localhost:8080')
+// const socket = new WebSocket('https://tictactoe.shash.digital/backend')
 
-// const socket = new WebSocket('ws://localhost:8080')
-const socket = new WebSocket('http://tictactoe.shash.digital/backend')
+socket.onopen = () => {
+    console.log('Connected to server!')
+    table.innerText = 'Waiting for Player 2...'
+}
 
-socket.onopen = () => console.log('Connected to server!');
 socket.onmessage = (event) => {
     console.log('Server says:', event.data);
     const res = JSON.parse(event.data)
     console.log(res)
-    grid = res.grid
-    const rows = table.rows
-    for (let i = 0; i < 3; i++) {
-        const cells = rows[i].cells
-        for (let j = 0; j < 3; j++) {
-            cells[j].innerText = grid[i][j]
-        }
+    if (res.startGame) {
+        makeTable()
+        if (turn == 'X') table.addEventListener('click', click)
     }
-    if (res.win !== false) {
+    if (res.turn) {
+        turn = res.turn;
+        caption.innerText = `You are ${turn}`
+        table.caption = caption
+        return
+    }
+
+    if (res.oppMove) {
+        grid[res.oppMove[0]][res.oppMove[1]].innerText = turn == 'X' ? 'O' : 'X'
+        table.addEventListener('click', click)
+    }
+
+    if (res.win == 'X' || res.win == 'O' || res.win == '') {
         endGame(res.win)
     }
 }
@@ -40,11 +58,15 @@ socket.onmessage = (event) => {
 function endGame(win) {
     table.removeEventListener('click', click)
     if (win != '') {
-        winner.innerText = `${win} won!!`
+        caption.innerText = `${win} won!!`
     } else {
-        winner.innerText = `Tie!!`
+        caption.innerText = `Tie!!`
     }
-    table.appendChild(winner)
+    if (win == turn) {
+        caption.classList.add('win')
+    } else if (win != '') {
+        caption.classList.add('lose')
+    }
     showBtn()
 }
 
@@ -52,10 +74,9 @@ async function click(e) {
     if (e.target != table) {
         if (e.target.innerText == '') {
             e.target.innerText = turn
-            grid[e.target.dataset.x][e.target.dataset.y] = turn
-            console.log('sending grid to backend')
-            socket.send(JSON.stringify(grid));
-            turn = turn == 'X' ? 'O' : 'X'
+            console.log('sending move to backend')
+            socket.send(JSON.stringify({ move: [e.target.dataset.x, e.target.dataset.y] }));
+            table.removeEventListener('click', click)
         }
     }
 }
@@ -73,15 +94,13 @@ function hideBtn() {
 }
 
 function reset() {
-    grid = [['', '', ''], ['', '', ''], ['', '', '']]
-    const rows = table.rows;
+    caption.className = ''
+    caption.innerText = ''
     for (let i = 0; i < 3; i++) {
-        const cells = rows[i].cells
         for (let j = 0; j < 3; j++) {
-            cells[j].innerText = ''
+            grid[i][j].innerText = ''
         }
     }
     table.removeChild(winner)
     hideBtn()
-    table.addEventListener('click', click)
 }
