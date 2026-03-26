@@ -23,6 +23,7 @@ function makeTable() {
 }
 
 const backend = window.location.hostname === 'localhost' ? 'http://localhost:8080' : '/backend';
+console.log('backend link:', backend)
 const socket = new WebSocket(backend)
 
 socket.onopen = () => {
