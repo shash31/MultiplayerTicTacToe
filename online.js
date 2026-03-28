@@ -22,7 +22,7 @@ function makeTable() {
     table.caption = caption
 }
 
-const backend = window.location.hostname === 'localhost' ? 'http://localhost:8080' : '/backend';
+const backend = window.location.hostname === '127.0.0.1' ? 'http://localhost:8080' : '/backend';
 console.log('backend link:', backend)
 const socket = new WebSocket(backend)
 
