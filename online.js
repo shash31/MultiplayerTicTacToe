@@ -1,8 +1,22 @@
 const table = document.querySelector('table')
 const resetBtn = document.getElementById('reset')
 const caption = document.createElement('caption')
+const nameSection = document.getElementById('namesection')
+const nameInput = nameSection.querySelector('input')
+const nameBtn = nameSection.querySelector('button')
+let playerName;
 let grid = []
 let turn;
+
+const backend = window.location.hostname === '127.0.0.1' ? 'http://localhost:8080' : '/backend';
+
+nameBtn.addEventListener('click', () => {
+    playerName = nameInput.value
+    nameSection.classList.add('hidden')
+    table.classList = ''
+    console.log(JSON.stringify({ name: playerName }))
+    socket.send(JSON.stringify({ name: playerName }))
+})
 
 table.innerText = 'Waiting for connection...'
 
@@ -22,8 +36,6 @@ function makeTable() {
     table.caption = caption
 }
 
-const backend = window.location.hostname === '127.0.0.1' ? 'http://localhost:8080' : '/backend';
-console.log('backend link:', backend)
 const socket = new WebSocket(backend)
 
 socket.onopen = () => {

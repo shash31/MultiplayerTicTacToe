@@ -16,6 +16,7 @@ wss.on('connection', (ws) => {
     id: playerId,
     socket: ws,
     turn: turn,
+    name: undefined,
     gameId: undefined
   })
   player = players.get(playerId)
@@ -43,7 +44,6 @@ wss.on('connection', (ws) => {
       turn: 'O',
       startGame: true
     }))
-    players.get(games.get(gameId).player1).socket.send(JSON.stringify({ startGame:  true }))
     player.gameId = gameId
   }
 
@@ -55,6 +55,13 @@ wss.on('connection', (ws) => {
   ws.on('message', (data) => {
     console.log(`Received: ${data}`);
     data = JSON.parse(data)
+    if (data.name) {
+      if (turn == 'O') {
+        players.get(game.player1).socket.send(JSON.stringify({ startGame: true }))
+      }
+      player.name = data.name;
+      return
+    }
     let move = data.move
     console.log(move)
     console.log()

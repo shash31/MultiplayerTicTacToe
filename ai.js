@@ -31,6 +31,29 @@ function makeTable() {
     table.caption = caption
 }
 
+function reset() {
+    caption.innerText = ''
+    for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+            displayGrid[i][j].innerText = ''
+            grid[i][j] = ''
+        }
+    }
+    turn = 'X'
+    table.addEventListener('click', click)
+    hideBtn()
+}
+
+function showBtn() {
+    resetBtn.classList.remove('hidden')
+    resetBtn.classList.add('block')
+}
+
+function hideBtn() {
+    resetBtn.classList.add('hidden')
+    resetBtn.classList.remove('block')
+}
+
 function endGame(win) {
     table.removeEventListener('click', click)
     if (win != '') {
@@ -49,23 +72,133 @@ function endGame(win) {
 function click(e) {
     if (e.target != table) {
         if (e.target.innerText == '') {
-            grid[e.target.dataset.x][e.target.dataset.y].innerText = 'X';
-            win = checkWin()
-            if (win !== false) endGame(win)
-            // turn = turn == 'X' ? 'O' : 'X'
+            grid[e.target.dataset.x][e.target.dataset.y] = 'X'
+            displayGrid[e.target.dataset.x][e.target.dataset.y].innerText = 'X';
+            win = checkWin(grid)
+            if (win !== false) {
+                endGame(win)
+                return;
+            }
             table.removeEventListener('click', click)
             let move = getMinimaxMove(grid, false)
+            console.log('best move: ', move)
+            grid[move[0]][move[1]] = 'O'
+            displayGrid[move[0]][move[1]].innerText = 'O'
+            win = checkWin(grid)
+            if (win !== false) {
+                endGame(win)
+                return
+            }
             table.addEventListener('click', click)
         }
     }
 }
 
-function getMinimaxMove(grid, maximizingPlayer, depth=9) {
+function getMinimaxMove(grid, maximizingPlayer) {
+    let children = []
+    for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+            if (grid[i][j] == '') {
+                children.push([i, j])
+            }
+        }
+    }
 
+    let bestScore
+    let bestMove = children[0]
+    
+    if (maximizingPlayer) {
+        bestScore = -10
+        for (const child of children) {
+            let newGrid = playMove(grid, child, 'X')
+            let score = minimax(newGrid, false)
+            if (score > bestScore) {
+                bestScore = score
+                bestMove = child
+            }
+        }
+    } else {
+        bestScore = 10
+        for (const child of children) {
+            let newGrid = playMove(grid, child, 'O')
+            let score = minimax(newGrid, true)
+            if (score < bestScore) {
+                bestScore = score
+                bestMove = child
+            }
+        }
+    }
+
+    console.log('score: ', bestScore)
+
+    return bestMove
 }
 
-function minimax(grid, maximizingPlayer, depth=9) {
+function minimax(grid, maximizingPlayer) {
+    const win = checkWin(grid)
+    // if (depth == 0 || (win !== false)) {
+    if (win !== false) {
+        return getScore(grid)
+    }
 
+    let children = []
+    for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+            if (grid[i][j] == '') {
+                children.push([i, j])
+            }
+        }
+    }
+
+    let bestScore;
+    let bestMove = children[0]
+    
+    if (maximizingPlayer) {
+        bestScore = -10
+        for (const child of children) {
+            let newGrid = playMove(grid, child, 'X')
+            let score = minimax(newGrid, false)
+            if (score > bestScore) {
+                bestScore = score
+                bestMove = child
+            }
+        }
+    } else {
+        bestScore = 10
+        for (const child of children) {
+            let newGrid = playMove(grid, child, 'O')
+            let score = minimax(newGrid, true)
+            if (score < bestScore) {
+                bestScore = score
+                bestMove = child
+            }
+        }
+    }
+
+    return bestScore
+}
+
+function playMove(grid, move, turn) {
+    let newGrid = []
+    for (let i = 0; i < 3; i++) {
+        newGrid.push([])
+        for (let j = 0; j < 3; j++) {
+            if (i == move[0] && j == move[1]) {
+                newGrid[i].push(turn)
+            } else {
+                newGrid[i].push(grid[i][j])
+            }
+        }
+    }
+
+    return newGrid
+}
+
+function getScore(grid) {
+    const win = checkWin(grid)
+    if (win == 'X') return 1
+    if (win == 'O') return -1
+    return 0
 }
 
 function checkWin(grid) {
